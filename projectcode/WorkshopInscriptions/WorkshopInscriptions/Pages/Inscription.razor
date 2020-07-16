@@ -1,0 +1,121 @@
+﻿@page "/inscription"
+@page "/"
+
+
+<h3>Workshop Inscriptions App </h3>
+
+
+<label for="inscription-full-name">Please put your full name here</label>
+<input name="inscription-full-name" placeholder="New Inscription" @bind="newInscription" />
+<button @onclick="AddInscription">Add Inscription</button>
+<br />
+<br />
+
+
+<h4>Inscriptions </h4>
+
+@if (inscriptions == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!inscriptions.Any())
+{
+    <p><em>No inscriptions for now. Waiting for new entrance.</em></p>
+}
+else
+{
+    <section>
+        <p>Number of Inscriptions: (@inscriptions.Count())</p>
+        <p>Number of Attendance: (@inscriptions.Count(inscription => inscription.HasAttended))</p>
+    </section>
+
+    <h4>List of Attendance </h4>
+
+    <input @bind-value="SearchFullName" @bind-value:event="oninput" />
+
+    <span class="text-muted ml-5">
+        Showing @FilteredInscriptions.Count out of @inscriptions.Count
+    </span>
+
+    <section>
+        <p>
+            <label>Has Attended?</label>
+            <ul>
+                @foreach (var inscription in FilteredInscriptions)
+                {
+                    <li>
+                        <input type="checkbox" @bind=" inscription.HasAttended" />
+                        <input @bind="inscription.FullName" />
+                        <button @onclick="@(() => RemoveInscription(inscription.ID))">Remove Inscription</button>
+                    </li>
+                }
+            </ul>
+        </p>
+    </section>
+
+    <h5>General List Information</h5>
+    <section>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Date of Registration</th>
+                    <th>Has Attended</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var inscription in inscriptions)
+                {
+                    <tr>
+                        <td>@inscription.ID </td>
+                        <td>@inscription.FullName</td>
+                        <td>@inscription.InscriptionDate</td>
+                        <td>@((@inscription.HasAttended == true) ? "Yes" : "No")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+}
+
+
+
+
+@code {
+
+    // Initialize SearchTerm for searching names and to "" to prevent null's
+    string SearchFullName { get; set; } = "";
+
+    // List of the inscriptions
+    private IList<Data.InscriptionItem> inscriptions = new List<Data.InscriptionItem>();
+
+    // Private variables for the new inscriptions
+    private int newID = 0;
+    private string newInscription;
+
+    //Search Inscriptions By Full Name
+    List<Data.InscriptionItem> FilteredInscriptions => inscriptions.Where(inscription => inscription.FullName.ToLower().Contains(SearchFullName.ToLower())).ToList();
+
+    private void AddInscription()
+    {
+        // Inscription: Add/Update the inscription
+        if (!string.IsNullOrWhiteSpace(newInscription))
+        {
+            newID += 1;
+            inscriptions.Add(new Data.InscriptionItem { ID = newID, FullName = newInscription, InscriptionDate = DateTime.Now });
+            newInscription = string.Empty;
+        }
+    }
+
+
+    private void RemoveInscription(int removeID)
+    {
+        // Inscription: remove the inscription
+        {
+            inscriptions.Remove(inscriptions.First(inscription => inscription.ID == removeID));
+
+        }
+    }
+}
+
